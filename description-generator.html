@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etsy Description Generator — Fairweather Prints</title>
+    <style>
+        :root {
+            --bg-main: #f5f5f5;
+            --bg-surface: #ffffff;
+            --bg-hover: #f8f9fa;
+            --border-color: #e1e4e8;
+            --text-primary: #24292e;
+            --text-secondary: #6a737d;
+            --accent: #0366d6;
+            --accent-hover: #0256c4;
+            --success: #28a745;
+            --purple: #6f42c1;
+            --purple-light: #f3f0ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--accent) 100%);
+            color: white;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 12px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+
+        .nav-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: var(--bg-surface);
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .print-selector {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            cursor: pointer;
+        }
+
+        .print-selector:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .panel {
+            background: var(--bg-surface);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            background: var(--purple-light);
+            border-bottom: 2px solid var(--purple);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--purple);
+        }
+
+        .panel-body {
+            padding: 20px;
+        }
+
+        .print-preview {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .print-preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+        }
+
+        .print-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-top: 4px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        textarea.large {
+            min-height: 120px;
+        }
+
+        .tag-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .tag {
+            padding: 6px 12px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .tag:hover {
+            background: var(--border-color);
+        }
+
+        .tag.selected {
+            background: var(--purple);
+            color: white;
+            border-color: var(--purple);
+        }
+
+        .preview-area {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            min-height: 500px;
+            font-size: 14px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            font-family: Georgia, serif;
+        }
+
+        .preview-area p {
+            margin-bottom: 16px;
+        }
+
+        .preview-area strong {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-area ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .saved-indicator {
+            display: inline-block;
+            padding: 8px 14px;
+            background: var(--success);
+            color: white;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .saved-indicator.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 1200px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>✍️ Etsy Description Generator</h1>
+            <p class="subtitle">Craft beautiful, consistent product descriptions for your print catalog</p>
+            <a href="index.html" class="nav-link">← Back to Catalog</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="toolbar">
+            <select id="print-selector" class="print-selector">
+                <option value="">Select a print to generate description...</option>
+            </select>
+            <span class="saved-indicator" id="saved-indicator">✓ Saved to Catalog</span>
+            <button class="btn btn-success" id="copy-btn" disabled>📋 Copy to Clipboard</button>
+            <button class="btn btn-primary" id="save-btn" disabled>💾 Save to Catalog</button>
+        </div>
+
+        <div class="workspace">
+            <!-- LEFT PANEL: Form -->
+            <div class="panel">
+                <div class="panel-header">Description Editor</div>
+                <div class="panel-body">
+                    <div id="empty-state" class="empty-state">
+                        <div class="empty-state-icon">🎨</div>
+                        <p>Select a print from the dropdown above to begin crafting its description.</p>
+                    </div>
+
+                    <div id="editor-form" style="display: none;">
+                        <div class="print-preview">
+                            <img id="preview-image" src="" alt="">
+                            <div class="print-title" id="preview-title"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Opening Hook</label>
+                            <textarea id="field-hook" placeholder="What makes this piece special in one sentence? Describe what you see + mood."></textarea>
+                            <div class="form-hint">Example: "Slender white birch trunks rise through soft morning light, creating an intricate pattern against a gentle sky."</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Visual Description</label>
+                            <textarea id="field-visual" class="large" placeholder="2-3 sentences about colors, composition, texture, what draws the eye..."></textarea>
+                            <div class="form-hint">Be specific: "Pale bark catches subtle variations of light, while darker understory creates depth."</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Theme / Mood Tags</label>
+                            <div class="tag-selector" id="mood-tags">
+                                <span class="tag" data-tag="peaceful">peaceful</span>
+                                <span class="tag" data-tag="mysterious">mysterious</span>
+                                <span class="tag" data-tag="warm">warm</span>
+                                <span class="tag" data-tag="contemplative">contemplative</span>
+                                <span class="tag" data-tag="vibrant">vibrant</span>
+                                <span class="tag" data-tag="quiet">quiet</span>
+                                <span class="tag" data-tag="nocturnal">nocturnal</span>
+                                <span class="tag" data-tag="luminous">luminous</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">About the Original</label>
+                            <select id="field-medium">
+                                <option value="">Select medium...</option>
+                                <option value="oil on canvas">Oil on canvas</option>
+                                <option value="oil on panel">Oil on panel</option>
+                                <option value="acrylic on canvas">Acrylic on canvas</option>
+                                <option value="watercolor">Watercolor</option>
+                                <option value="mixed media">Mixed media</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Artist / Attribution</label>
+                            <select id="field-artist">
+                                <option value="fairweather">Fairweather Productions</option>
+                                <option value="jessop">Jessop Monahan Hunt</option>
+                                <option value="shannon">Shannon Hunt</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Inspiration / Context</label>
+                            <textarea id="field-inspiration" placeholder="What inspired this piece? What were you exploring? Part of a series?"></textarea>
+                            <div class="form-hint">Example: "Inspired by early morning walks through northern birch forests where the trees seem to whisper in the breeze."</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Optional Closer</label>
+                            <select id="field-closer">
+                                <option value="">None</option>
+                                <option value="nature">Perfect for nature lovers</option>
+                                <option value="bird">Great for bird enthusiasts</option>
+                                <option value="mythology">Ideal for mythology and folklore lovers</option>
+                                <option value="garden">Perfect for garden and botanical art collectors</option>
+                                <option value="contemplative">Brings a sense of calm to any space</option>
+                                <option value="custom">Custom (type below)...</option>
+                            </select>
+                            <textarea id="field-closer-custom" placeholder="Custom closing line..." style="margin-top: 8px; display: none;"></textarea>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" id="load-notes-btn">📝 Load from Notes</button>
+                            <button class="btn btn-secondary" id="clear-form-btn">🗑️ Clear Form</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Preview -->
+            <div class="panel">
+                <div class="panel-header">Live Preview</div>
+                <div class="panel-body">
+                    <div class="preview-area" id="preview-output">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">👁️</div>
+                            <p>Your generated description will appear here as you type.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'fairweather-catalog-data';
+        let prints = [];
+        let currentPrint = null;
+
+        // Load prints from localStorage or fetch default
+        function loadPrints() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                prints = JSON.parse(stored);
+                populatePrintSelector();
+            } else {
+                fetch('catalog-data.json')
+                    .then(r => r.json())
+                    .then(data => {
+                        prints = data;
+                        populatePrintSelector();
+                    })
+                    .catch(err => {
+                        console.error('Failed to load catalog data:', err);
+                        alert('Failed to load catalog. Please ensure catalog-data.json exists.');
+                    });
+            }
+        }
+
+        // Populate print selector dropdown
+        function populatePrintSelector() {
+            const selector = document.getElementById('print-selector');
+            selector.innerHTML = '<option value="">Select a print to generate description...</option>';
+
+            prints.forEach((print, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${print.title}${print.artist ? ' — ' + print.artist : ''}`;
+                selector.appendChild(option);
+            });
+
+            // Check for URL parameter
+            const params = new URLSearchParams(window.location.search);
+            const printParam = params.get('print');
+            if (printParam) {
+                const index = prints.findIndex(p => p.filename.includes(printParam) || p.title.toLowerCase() === printParam.toLowerCase());
+                if (index !== -1) {
+                    selector.value = index;
+                    loadPrint(index);
+                }
+            }
+        }
+
+        // Load selected print
+        function loadPrint(index) {
+            currentPrint = prints[index];
+
+            // Show editor, hide empty state
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('editor-form').style.display = 'block';
+
+            // Load preview image
+            const previewImage = document.getElementById('preview-image');
+            previewImage.src = `Art-for-Prints-Web/${currentPrint.web_image}`;
+            previewImage.alt = currentPrint.title;
+
+            document.getElementById('preview-title').textContent = currentPrint.title;
+
+            // Pre-fill artist if set
+            if (currentPrint.artist) {
+                document.getElementById('field-artist').value = currentPrint.artist.toLowerCase();
+            }
+
+            // Clear form fields
+            document.getElementById('field-hook').value = '';
+            document.getElementById('field-visual').value = '';
+            document.getElementById('field-medium').value = '';
+            document.getElementById('field-inspiration').value = '';
+            document.getElementById('field-closer').value = '';
+            document.getElementById('field-closer-custom').style.display = 'none';
+            document.querySelectorAll('.tag.selected').forEach(tag => tag.classList.remove('selected'));
+
+            // If description exists, try to parse it
+            if (currentPrint.description) {
+                // Show existing description in preview
+                updatePreview();
+            }
+
+            // Enable buttons
+            document.getElementById('copy-btn').disabled = false;
+            document.getElementById('save-btn').disabled = false;
+
+            updatePreview();
+        }
+
+        // Generate and update preview
+        function updatePreview() {
+            if (!currentPrint) return;
+
+            const hook = document.getElementById('field-hook').value.trim();
+            const visual = document.getElementById('field-visual').value.trim();
+            const medium = document.getElementById('field-medium').value;
+            const artist = document.getElementById('field-artist').value;
+            const inspiration = document.getElementById('field-inspiration').value.trim();
+            const closerType = document.getElementById('field-closer').value;
+            const closerCustom = document.getElementById('field-closer-custom').value.trim();
+
+            let description = '';
+
+            // Opening hook
+            if (hook) {
+                description += hook + '\n\n';
+            }
+
+            // Visual description
+            if (visual) {
+                description += visual + '\n\n';
+            }
+
+            // Print details (standard block)
+            description += `PRINT DETAILS:
+• 8" x 10" archival quality print
+• Matted to 11" x 14" (fits standard frames)
+• Protected in clear archival bag
+• Ready to frame and display
+• Printed on premium photo paper\n\n`;
+
+            // About the original
+            if (medium || inspiration) {
+                description += 'ABOUT THE ORIGINAL:\n';
+
+                let aboutText = 'Original ';
+                if (medium) aboutText += medium;
+
+                // Add artist attribution
+                if (artist === 'jessop') {
+                    aboutText += ' by Jessop Monahan Hunt';
+                } else if (artist === 'shannon') {
+                    aboutText += ' by Shannon Hunt';
+                }
+
+                if (inspiration) {
+                    aboutText += ', ' + inspiration;
+                }
+
+                description += aboutText + '.\n\n';
+                description += 'Each print is carefully produced to capture the depth and texture of the original painting.\n\n';
+            }
+
+            // Optional closer
+            if (closerType && closerType !== 'custom') {
+                const closers = {
+                    nature: 'Perfect for nature lovers.',
+                    bird: 'Great for bird enthusiasts.',
+                    mythology: 'Ideal for mythology and folklore lovers.',
+                    garden: 'Perfect for garden and botanical art collectors.',
+                    contemplative: 'Brings a sense of calm to any space.'
+                };
+                description += closers[closerType];
+            } else if (closerType === 'custom' && closerCustom) {
+                description += closerCustom;
+            }
+
+            // Update preview
+            const preview = document.getElementById('preview-output');
+            if (description.trim()) {
+                preview.textContent = description;
+            } else {
+                preview.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👁️</div>
+                        <p>Start filling in the form to see your description preview.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load notes into hook field
+        function loadFromNotes() {
+            if (currentPrint && currentPrint.notes) {
+                document.getElementById('field-hook').value = currentPrint.notes;
+                updatePreview();
+            } else {
+                alert('No notes found for this print.');
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            if (confirm('Clear all form fields?')) {
+                document.getElementById('field-hook').value = '';
+                document.getElementById('field-visual').value = '';
+                document.getElementById('field-medium').value = '';
+                document.getElementById('field-inspiration').value = '';
+                document.getElementById('field-closer').value = '';
+                document.getElementById('field-closer-custom').value = '';
+                document.querySelectorAll('.tag.selected').forEach(tag => tag.classList.remove('selected'));
+                updatePreview();
+            }
+        }
+
+        // Save to catalog
+        function saveToCatalog() {
+            if (!currentPrint) return;
+
+            const description = document.getElementById('preview-output').textContent.trim();
+            if (!description) {
+                alert('No description to save. Fill in the form first.');
+                return;
+            }
+
+            // Find print in array and update
+            const index = prints.findIndex(p => p.filename === currentPrint.filename);
+            if (index !== -1) {
+                prints[index].description = description;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(prints));
+
+                // Show saved indicator
+                const indicator = document.getElementById('saved-indicator');
+                indicator.classList.add('show');
+                setTimeout(() => indicator.classList.remove('show'), 3000);
+            }
+        }
+
+        // Copy to clipboard
+        function copyToClipboard() {
+            const description = document.getElementById('preview-output').textContent.trim();
+            if (!description) {
+                alert('No description to copy. Fill in the form first.');
+                return;
+            }
+
+            navigator.clipboard.writeText(description).then(() => {
+                const btn = document.getElementById('copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = originalText, 2000);
+            }).catch(err => {
+                alert('Failed to copy to clipboard: ' + err);
+            });
+        }
+
+        // Event listeners
+        document.getElementById('print-selector').addEventListener('change', (e) => {
+            if (e.target.value) {
+                loadPrint(e.target.value);
+            }
+        });
+
+        document.getElementById('field-hook').addEventListener('input', updatePreview);
+        document.getElementById('field-visual').addEventListener('input', updatePreview);
+        document.getElementById('field-medium').addEventListener('change', updatePreview);
+        document.getElementById('field-artist').addEventListener('change', updatePreview);
+        document.getElementById('field-inspiration').addEventListener('input', updatePreview);
+        document.getElementById('field-closer').addEventListener('change', (e) => {
+            const customField = document.getElementById('field-closer-custom');
+            if (e.target.value === 'custom') {
+                customField.style.display = 'block';
+            } else {
+                customField.style.display = 'none';
+            }
+            updatePreview();
+        });
+        document.getElementById('field-closer-custom').addEventListener('input', updatePreview);
+
+        document.getElementById('load-notes-btn').addEventListener('click', loadFromNotes);
+        document.getElementById('clear-form-btn').addEventListener('click', clearForm);
+        document.getElementById('save-btn').addEventListener('click', saveToCatalog);
+        document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
+
+        // Tag selection
+        document.querySelectorAll('.tag').forEach(tag => {
+            tag.addEventListener('click', () => {
+                tag.classList.toggle('selected');
+            });
+        });
+
+        // Initialize
+        loadPrints();
+    </script>
+</body>
+</html>

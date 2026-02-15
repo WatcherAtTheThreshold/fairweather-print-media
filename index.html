@@ -605,7 +605,14 @@
                                     <textarea class="editable-textarea" data-field="notes" placeholder="Brief description for internal use...">${print.notes || ''}</textarea>
                                 </div>
                                 <div class="detail-field full-width">
-                                    <label class="detail-label">Description (Full/Etsy Description)</label>
+                                    <label class="detail-label">Description (Full/Etsy Description)
+                                        <a href="description-generator.html?print=${encodeURIComponent(print.title)}"
+                                           target="_blank"
+                                           style="font-size: 11px; font-weight: normal; color: var(--accent); text-decoration: none; margin-left: 8px;"
+                                           onclick="event.stopPropagation();">
+                                           ✍️ Generate Description
+                                        </a>
+                                    </label>
                                     <textarea class="editable-textarea" data-field="description" placeholder="Full product description for Etsy and other platforms...">${print.description || ''}</textarea>
                                 </div>
                             </div>
