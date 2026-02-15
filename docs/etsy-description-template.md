@@ -166,7 +166,7 @@ You might want to note in the "About the Original" section:
 - Shannon's work: [her style/approach]
 
 Example variations:
-- "Original oil painting by Jessop Monahan Hunt, part of his mythology series..."
+- "Original oil painting by Jessop Hunt, part of his mythology series..."
 - "Original oil painting by Shannon Hunt, inspired by Inktober sketches..."
 
 Or keep it under the Fairweather name without attribution if you prefer.
