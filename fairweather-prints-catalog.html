@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fairweather Prints Catalog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box, .filter-select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .filter-select {
+            min-width: 150px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background: #34495e;
+        }
+
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.3;
+        }
+
+        th.sorted-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        th.sorted-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .thumbnail:hover {
+            transform: scale(1.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-not-listed {
+            background: #fee;
+            color: #c33;
+        }
+
+        .status-listed {
+            background: #efe;
+            color: #3c3;
+        }
+
+        .status-sold-out {
+            background: #eee;
+            color: #666;
+        }
+
+        .etsy-link {
+            color: #f56040;
+            text-decoration: none;
+        }
+
+        .etsy-link:hover {
+            text-decoration: underline;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* Modal for full-size image */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fairweather Prints Catalog</h1>
+
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-label">Total Prints</span>
+                <span class="stat-value" id="total-count">0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Not Listed</span>
+                <span class="stat-value" id="not-listed-count">0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Listed</span>
+                <span class="stat-value" id="listed-count">0</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" class="search-box" id="search" placeholder="Search by title...">
+            <select class="filter-select" id="filter-status">
+                <option value="">All Status</option>
+                <option value="Not Listed">Not Listed</option>
+                <option value="Listed">Listed</option>
+                <option value="Sold Out">Sold Out</option>
+            </select>
+            <select class="filter-select" id="filter-artist">
+                <option value="">All Artists</option>
+                <option value="Jessop">Jessop</option>
+                <option value="Shannon">Shannon</option>
+            </select>
+        </div>
+
+        <table id="catalog-table">
+            <thead>
+                <tr>
+                    <th class="sortable" data-sort="thumbnail">Image</th>
+                    <th class="sortable" data-sort="title">Title</th>
+                    <th class="sortable" data-sort="artist">Artist</th>
+                    <th class="sortable" data-sort="status">Status</th>
+                    <th class="sortable" data-sort="price">Price</th>
+                    <th>Etsy</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody id="catalog-body">
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="image-modal">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <img id="modal-image" src="" alt="">
+    </div>
+
+    <script>
+        // Embedded data
+        const prints = [
+  {
+    "filename": "afternoon.tif",
+    "title": "Afternoon",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "afternoon.jpg",
+    "thumbnail": "afternoon.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "apple-blossom.tif",
+    "title": "Apple Blossom",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "apple-blossom.jpg",
+    "thumbnail": "apple-blossom.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "astraea-star-maiden.tif",
+    "title": "Astraea Star Maiden",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "astraea-star-maiden.jpg",
+    "thumbnail": "astraea-star-maiden.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "atrium.tif",
+    "title": "Atrium",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "atrium.jpg",
+    "thumbnail": "atrium.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "barn-owl-and-snow-moon.tif",
+    "title": "Barn Owl And Snow Moon",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "barn-owl-and-snow-moon.jpg",
+    "thumbnail": "barn-owl-and-snow-moon.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "birch-meadow.tif",
+    "title": "Birch Meadow",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "birch-meadow.jpg",
+    "thumbnail": "birch-meadow.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "chickadee.tif",
+    "title": "Chickadee",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "chickadee.jpg",
+    "thumbnail": "chickadee.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "crabby.tif",
+    "title": "Crabby",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "crabby.jpg",
+    "thumbnail": "crabby.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "evening.tif",
+    "title": "Evening",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "evening.jpg",
+    "thumbnail": "evening.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "flame.tif",
+    "title": "Flame",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "flame.jpg",
+    "thumbnail": "flame.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "flower-pot.tif",
+    "title": "Flower Pot",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "flower-pot.jpg",
+    "thumbnail": "flower-pot.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "flowers.tif",
+    "title": "Flowers",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "flowers.jpg",
+    "thumbnail": "flowers.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "forest-dweller.tif",
+    "title": "Forest Dweller",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "forest-dweller.jpg",
+    "thumbnail": "forest-dweller.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "forget.tif",
+    "title": "Forget",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "forget.jpg",
+    "thumbnail": "forget.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "gazing-ball.tif",
+    "title": "Gazing Ball",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "gazing-ball.jpg",
+    "thumbnail": "gazing-ball.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "golden-invitation.tif",
+    "title": "Golden Invitation",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "golden-invitation.jpg",
+    "thumbnail": "golden-invitation.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "hypatia.tif",
+    "title": "Hypatia",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "hypatia.jpg",
+    "thumbnail": "hypatia.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "hypolimnus-anomala.tif",
+    "title": "Hypolimnus Anomala",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "hypolimnus-anomala.jpg",
+    "thumbnail": "hypolimnus-anomala.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "inanna.tif",
+    "title": "Inanna",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "inanna.jpg",
+    "thumbnail": "inanna.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "jumper.tif",
+    "title": "Jumper",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "jumper.jpg",
+    "thumbnail": "jumper.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "just-gears-and-stardust.tif",
+    "title": "Just Gears And Stardust",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "just-gears-and-stardust.jpg",
+    "thumbnail": "just-gears-and-stardust.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "kewl.tif",
+    "title": "Kewl",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "kewl.jpg",
+    "thumbnail": "kewl.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "la-puerta-azul.tif",
+    "title": "La Puerta Azul",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "la-puerta-azul.jpg",
+    "thumbnail": "la-puerta-azul.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "little-critters.tif",
+    "title": "Little Critters",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "little-critters.jpg",
+    "thumbnail": "little-critters.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "lyras-weaver.tif",
+    "title": "Lyras Weaver",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "lyras-weaver.jpg",
+    "thumbnail": "lyras-weaver.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "minervas-wisdom.tif",
+    "title": "Minervas Wisdom",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "minervas-wisdom.jpg",
+    "thumbnail": "minervas-wisdom.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "moon-garden.tif",
+    "title": "Moon Garden",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "moon-garden.jpg",
+    "thumbnail": "moon-garden.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "moonlight-doctrine.tif",
+    "title": "Moonlight Doctrine",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "moonlight-doctrine.jpg",
+    "thumbnail": "moonlight-doctrine.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "moonlit-silence.tif",
+    "title": "Moonlit Silence",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "moonlit-silence.jpg",
+    "thumbnail": "moonlit-silence.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "morning.tif",
+    "title": "Morning",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "morning.jpg",
+    "thumbnail": "morning.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "neruda-aoede.tif",
+    "title": "Neruda Aoede",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "neruda-aoede.jpg",
+    "thumbnail": "neruda-aoede.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "nest.tif",
+    "title": "Nest",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "nest.jpg",
+    "thumbnail": "nest.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "oracle-at-delphi.tif",
+    "title": "Oracle At Delphi",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "oracle-at-delphi.jpg",
+    "thumbnail": "oracle-at-delphi.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "oshun.tif",
+    "title": "Oshun",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "oshun.jpg",
+    "thumbnail": "oshun.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "painted-lady-1.tif",
+    "title": "Painted Lady 1",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "painted-lady-1.jpg",
+    "thumbnail": "painted-lady-1.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "painted-lady-2.tif",
+    "title": "Painted Lady 2",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "painted-lady-2.jpg",
+    "thumbnail": "painted-lady-2.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "potnia-theron.tif",
+    "title": "Potnia Theron",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "potnia-theron.jpg",
+    "thumbnail": "potnia-theron.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "scurry.tif",
+    "title": "Scurry",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "scurry.jpg",
+    "thumbnail": "scurry.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "shadow-of-the-mountain.tif",
+    "title": "Shadow Of The Mountain",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "shadow-of-the-mountain.jpg",
+    "thumbnail": "shadow-of-the-mountain.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "solitude.tif",
+    "title": "Solitude",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "solitude.jpg",
+    "thumbnail": "solitude.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "stand.tif",
+    "title": "Stand",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "stand.jpg",
+    "thumbnail": "stand.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "summer-stroll.tif",
+    "title": "Summer Stroll",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "summer-stroll.jpg",
+    "thumbnail": "summer-stroll.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "sunrise-doctrine.tif",
+    "title": "Sunrise Doctrine",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "sunrise-doctrine.jpg",
+    "thumbnail": "sunrise-doctrine.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "the-dreamer.tif",
+    "title": "The Dreamer",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "the-dreamer.jpg",
+    "thumbnail": "the-dreamer.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "the-explorer-and-blue-wing.tif",
+    "title": "The Explorer And Blue Wing",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "the-explorer-and-blue-wing.jpg",
+    "thumbnail": "the-explorer-and-blue-wing.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "the-girl-from-ipanema.tif",
+    "title": "The Girl From Ipanema",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "the-girl-from-ipanema.jpg",
+    "thumbnail": "the-girl-from-ipanema.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "the-sound-of-falling-snow.tif",
+    "title": "The Sound Of Falling Snow",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "the-sound-of-falling-snow.jpg",
+    "thumbnail": "the-sound-of-falling-snow.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "three-birches.tif",
+    "title": "Three Birches",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "three-birches.jpg",
+    "thumbnail": "three-birches.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "two-little-birds.tif",
+    "title": "Two Little Birds",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "two-little-birds.jpg",
+    "thumbnail": "two-little-birds.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "ugly-mug.tif",
+    "title": "Ugly Mug",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "ugly-mug.jpg",
+    "thumbnail": "ugly-mug.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "under-the-aegis-of-ishtar.tif",
+    "title": "Under The Aegis Of Ishtar",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "under-the-aegis-of-ishtar.jpg",
+    "thumbnail": "under-the-aegis-of-ishtar.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "valentine-foxs.tif",
+    "title": "Valentine Foxs",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "valentine-foxs.jpg",
+    "thumbnail": "valentine-foxs.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "way-home.tif",
+    "title": "Way Home",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "way-home.jpg",
+    "thumbnail": "way-home.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  },
+  {
+    "filename": "whispers-in-the-birches.tif",
+    "title": "Whispers In The Birches",
+    "artist": "",
+    "status": "Not Listed",
+    "price": "",
+    "web_image": "whispers-in-the-birches.jpg",
+    "thumbnail": "whispers-in-the-birches.jpg",
+    "etsy_url": "",
+    "notes": "",
+    "description": ""
+  }
+];
+
+        let filteredPrints = [...prints];
+        let sortColumn = null;
+        let sortDirection = 'asc';
+
+        // Initialize
+        renderTable();
+        updateStats();
+
+        // Search functionality
+        document.getElementById('search').addEventListener('input', (e) => {
+            filterAndRender();
+        });
+
+        // Filter functionality
+        document.getElementById('filter-status').addEventListener('change', filterAndRender);
+        document.getElementById('filter-artist').addEventListener('change', filterAndRender);
+
+        // Sort functionality
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                const column = th.dataset.sort;
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
+                sortAndRender();
+            });
+        });
+
+        function filterAndRender() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-status').value;
+            const artistFilter = document.getElementById('filter-artist').value;
+
+            filteredPrints = prints.filter(print => {
+                const matchesSearch = print.title.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || print.status === statusFilter;
+                const matchesArtist = !artistFilter || print.artist === artistFilter;
+                return matchesSearch && matchesStatus && matchesArtist;
+            });
+
+            renderTable();
+        }
+
+        function sortAndRender() {
+            if (!sortColumn) return;
+
+            filteredPrints.sort((a, b) => {
+                let aVal = a[sortColumn] || '';
+                let bVal = b[sortColumn] || '';
+
+                // Handle price as number
+                if (sortColumn === 'price') {
+                    aVal = parseFloat(aVal.replace('$', '')) || 0;
+                    bVal = parseFloat(bVal.replace('$', '')) || 0;
+                }
+
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+            updateSortIndicators();
+        }
+
+        function updateSortIndicators() {
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+                if (th.dataset.sort === sortColumn) {
+                    th.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                }
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('catalog-body');
+
+            if (filteredPrints.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="no-results">No prints found matching your filters.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredPrints.map(print => {
+                const statusClass = `status-${print.status.toLowerCase().replace(' ', '-')}`;
+                const thumbnailPath = `Art-for-Prints-Thumbnails/${print.thumbnail}`;
+                const webImagePath = `Art-for-Prints-Web/${print.web_image}`;
+
+                return `
+                    <tr>
+                        <td>
+                            <img src="${thumbnailPath}"
+                                 alt="${print.title}"
+                                 class="thumbnail"
+                                 onclick="showImage('${webImagePath}', '${print.title}')"
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'60\\' height=\\'60\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'60\\' height=\\'60\\'/%3E%3C/svg%3E'">
+                        </td>
+                        <td><strong>${print.title}</strong></td>
+                        <td>${print.artist || '<em>Not set</em>'}</td>
+                        <td><span class="status-badge ${statusClass}">${print.status}</span></td>
+                        <td>${print.price || '<em>Not set</em>'}</td>
+                        <td>${print.etsy_url ? `<a href="${print.etsy_url}" class="etsy-link" target="_blank">View</a>` : ''}</td>
+                        <td>${print.notes}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('total-count').textContent = prints.length;
+            document.getElementById('not-listed-count').textContent = prints.filter(p => p.status === 'Not Listed').length;
+            document.getElementById('listed-count').textContent = prints.filter(p => p.status === 'Listed').length;
+        }
+
+        function showImage(path, title) {
+            const modal = document.getElementById('image-modal');
+            const modalImage = document.getElementById('modal-image');
+            modalImage.src = path;
+            modalImage.alt = title;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('image-modal').classList.remove('active');
+        }
+
+        // Close modal on click outside image
+        document.getElementById('image-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeModal();
+            }
+        });
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
