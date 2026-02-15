@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fairweather Print Catalog Editor</title>
+    <style>
+        :root {
+            --bg-main: #f5f5f5;
+            --bg-surface: #ffffff;
+            --bg-hover: #f8f9fa;
+            --bg-expanded: #fafbfc;
+            --border-color: #e1e4e8;
+            --text-primary: #24292e;
+            --text-secondary: #6a737d;
+            --accent: #0366d6;
+            --accent-hover: #0256c4;
+            --success: #28a745;
+            --danger: #d73a49;
+            --warning: #ffc107;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--bg-surface);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: var(--bg-surface);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
+        }
+
+        select {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .save-indicator {
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .save-indicator.saving {
+            display: inline-block;
+            background: var(--warning);
+            color: #000;
+        }
+
+        .save-indicator.saved {
+            display: inline-block;
+            background: var(--success);
+            color: white;
+        }
+
+        .catalog {
+            background: var(--bg-surface);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .catalog-header {
+            display: grid;
+            grid-template-columns: 80px 1fr 120px 120px 100px 80px;
+            gap: 12px;
+            padding: 16px;
+            background: var(--text-primary);
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .catalog-row {
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .catalog-row:hover {
+            background: var(--bg-hover);
+        }
+
+        .catalog-row.expanded {
+            background: var(--bg-expanded);
+        }
+
+        .catalog-row-main {
+            display: grid;
+            grid-template-columns: 80px 1fr 120px 120px 100px 80px;
+            gap: 12px;
+            padding: 16px;
+            align-items: center;
+        }
+
+        .catalog-row-details {
+            display: none;
+            padding: 0 16px 16px 16px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-expanded);
+        }
+
+        .catalog-row.expanded .catalog-row-details {
+            display: block;
+        }
+
+        .thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .thumbnail:hover {
+            transform: scale(1.15);
+        }
+
+        .title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .editable-input,
+        .editable-select {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+        }
+
+        .editable-input:focus,
+        .editable-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(3, 102, 214, 0.1);
+        }
+
+        .editable-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .editable-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(3, 102, 214, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-not-listed {
+            background: #fee;
+            color: #c33;
+        }
+
+        .status-listed {
+            background: #efe;
+            color: #3c3;
+        }
+
+        .status-sold-out {
+            background: #eee;
+            color: #666;
+        }
+
+        .expand-toggle {
+            font-size: 16px;
+            user-select: none;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .catalog-row.expanded .expand-toggle {
+            transform: rotate(90deg);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .detail-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .detail-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        @media print {
+            .toolbar,
+            .expand-toggle {
+                display: none;
+            }
+
+            .catalog-row {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Fairweather Print Catalog</h1>
+            <p class="subtitle">Editable catalog with auto-save to browser localStorage</p>
+
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-label">Total Prints</span>
+                    <span class="stat-value" id="total-count">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Not Listed</span>
+                    <span class="stat-value" id="not-listed-count">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Listed</span>
+                    <span class="stat-value" id="listed-count">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Sold Out</span>
+                    <span class="stat-value" id="sold-out-count">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <input type="text" class="search-box" id="search" placeholder="Search by title...">
+
+            <select id="filter-status">
+                <option value="">All Status</option>
+                <option value="Not Listed">Not Listed</option>
+                <option value="Listed">Listed</option>
+                <option value="Sold Out">Sold Out</option>
+            </select>
+
+            <select id="filter-artist">
+                <option value="">All Artists</option>
+                <option value="Jessop">Jessop</option>
+                <option value="Shannon">Shannon</option>
+            </select>
+
+            <div style="flex: 1;"></div>
+
+            <span class="save-indicator" id="save-indicator"></span>
+
+            <button class="btn btn-secondary" id="export-csv">Export CSV</button>
+            <button class="btn btn-secondary" id="export-json">Export JSON</button>
+            <button class="btn btn-secondary" id="import-json">Import JSON</button>
+            <button class="btn btn-primary" id="print">Print</button>
+        </div>
+
+        <div class="catalog">
+            <div class="catalog-header">
+                <div>Image</div>
+                <div>Title</div>
+                <div>Artist</div>
+                <div>Status</div>
+                <div>Price</div>
+                <div></div>
+            </div>
+            <div id="catalog-body"></div>
+        </div>
+
+        <div id="no-results" class="no-results" style="display: none;">
+            No prints found matching your filters.
+        </div>
+    </div>
+
+    <div class="modal" id="image-modal">
+        <span class="modal-close" id="modal-close">&times;</span>
+        <img id="modal-image" src="" alt="">
+    </div>
+
+    <input type="file" id="json-file-input" accept=".json" style="display: none;">
+
+    <script src="catalog-data.json" type="application/json" id="default-data"></script>
+    <script>
+        // Load default data
+        let defaultPrints = [];
+        fetch('catalog-data.json')
+            .then(r => r.json())
+            .then(data => {
+                defaultPrints = data;
+                initApp();
+            })
+            .catch(err => {
+                console.error('Failed to load catalog data:', err);
+                alert('Failed to load catalog data. Please refresh the page.');
+            });
+
+        let prints = [];
+        let filteredPrints = [];
+        const STORAGE_KEY = 'fairweather-catalog-data';
+
+        function initApp() {
+            // Load from localStorage or use defaults
+            const stored = localStorage.getItem(STORAGE_KEY);
+            prints = stored ? JSON.parse(stored) : [...defaultPrints];
+
+            filteredPrints = [...prints];
+
+            renderCatalog();
+            updateStats();
+            attachEventListeners();
+        }
+
+        function attachEventListeners() {
+            // Search and filter
+            document.getElementById('search').addEventListener('input', filterAndRender);
+            document.getElementById('filter-status').addEventListener('change', filterAndRender);
+            document.getElementById('filter-artist').addEventListener('change', filterAndRender);
+
+            // Export/Import
+            document.getElementById('export-csv').addEventListener('click', exportCSV);
+            document.getElementById('export-json').addEventListener('click', exportJSON);
+            document.getElementById('import-json').addEventListener('click', () => {
+                document.getElementById('json-file-input').click();
+            });
+            document.getElementById('json-file-input').addEventListener('change', importJSON);
+            document.getElementById('print').addEventListener('click', printCatalog);
+
+            // Modal
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            document.getElementById('image-modal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+        function filterAndRender() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-status').value;
+            const artistFilter = document.getElementById('filter-artist').value;
+
+            filteredPrints = prints.filter(print => {
+                const matchesSearch = print.title.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || print.status === statusFilter;
+                const matchesArtist = !artistFilter || print.artist === artistFilter;
+                return matchesSearch && matchesStatus && matchesArtist;
+            });
+
+            renderCatalog();
+        }
+
+        function renderCatalog() {
+            const catalogBody = document.getElementById('catalog-body');
+            const noResults = document.getElementById('no-results');
+
+            if (filteredPrints.length === 0) {
+                catalogBody.innerHTML = '';
+                noResults.style.display = 'block';
+                return;
+            }
+
+            noResults.style.display = 'none';
+
+            catalogBody.innerHTML = filteredPrints.map((print, index) => {
+                const statusClass = `status-${print.status.toLowerCase().replace(' ', '-')}`;
+                const thumbnailPath = `Art-for-Prints-Thumbnails/${print.thumbnail}`;
+                const webImagePath = `Art-for-Prints-Web/${print.web_image}`;
+
+                return `
+                    <div class="catalog-row" data-index="${prints.indexOf(print)}">
+                        <div class="catalog-row-main">
+                            <div>
+                                <img src="${thumbnailPath}"
+                                     alt="${print.title}"
+                                     class="thumbnail"
+                                     onclick="event.stopPropagation(); showImage('${webImagePath}', '${print.title}')"
+                                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'60\\' height=\\'60\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'60\\' height=\\'60\\'/%3E%3C/svg%3E'">
+                            </div>
+                            <div class="title">${print.title}</div>
+                            <div>
+                                <select class="editable-select" data-field="artist" onclick="event.stopPropagation()">
+                                    <option value="">Not set</option>
+                                    <option value="Jessop" ${print.artist === 'Jessop' ? 'selected' : ''}>Jessop</option>
+                                    <option value="Shannon" ${print.artist === 'Shannon' ? 'selected' : ''}>Shannon</option>
+                                </select>
+                            </div>
+                            <div>
+                                <select class="editable-select" data-field="status" onclick="event.stopPropagation()">
+                                    <option value="Not Listed" ${print.status === 'Not Listed' ? 'selected' : ''}>Not Listed</option>
+                                    <option value="Listed" ${print.status === 'Listed' ? 'selected' : ''}>Listed</option>
+                                    <option value="Sold Out" ${print.status === 'Sold Out' ? 'selected' : ''}>Sold Out</option>
+                                </select>
+                            </div>
+                            <div>
+                                <input type="text" class="editable-input" data-field="price" value="${print.price || ''}" placeholder="$0.00" onclick="event.stopPropagation()">
+                            </div>
+                            <div>
+                                <span class="expand-toggle">▶</span>
+                            </div>
+                        </div>
+                        <div class="catalog-row-details">
+                            <div class="details-grid">
+                                <div class="detail-field full-width">
+                                    <label class="detail-label">Etsy URL</label>
+                                    <input type="text" class="editable-input" data-field="etsy_url" value="${print.etsy_url || ''}" placeholder="https://etsy.com/listing/...">
+                                </div>
+                                <div class="detail-field full-width">
+                                    <label class="detail-label">Notes (Short Description)</label>
+                                    <textarea class="editable-textarea" data-field="notes" placeholder="Brief description for internal use...">${print.notes || ''}</textarea>
+                                </div>
+                                <div class="detail-field full-width">
+                                    <label class="detail-label">Description (Full/Etsy Description)</label>
+                                    <textarea class="editable-textarea" data-field="description" placeholder="Full product description for Etsy and other platforms...">${print.description || ''}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Attach row click handlers
+            document.querySelectorAll('.catalog-row').forEach(row => {
+                const mainRow = row.querySelector('.catalog-row-main');
+                mainRow.addEventListener('click', () => {
+                    row.classList.toggle('expanded');
+                });
+
+                // Attach field change handlers
+                row.querySelectorAll('.editable-input, .editable-select, .editable-textarea').forEach(field => {
+                    field.addEventListener('change', (e) => {
+                        updatePrintField(row.dataset.index, e.target.dataset.field, e.target.value);
+                    });
+                });
+            });
+        }
+
+        function updatePrintField(index, field, value) {
+            prints[index][field] = value;
+            saveToCatalog();
+            updateStats();
+
+            // Show save indicator
+            const indicator = document.getElementById('save-indicator');
+            indicator.textContent = 'Saving...';
+            indicator.className = 'save-indicator saving';
+
+            setTimeout(() => {
+                indicator.textContent = '✓ Saved';
+                indicator.className = 'save-indicator saved';
+                setTimeout(() => {
+                    indicator.className = 'save-indicator';
+                }, 2000);
+            }, 300);
+        }
+
+        function saveToCatalog() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(prints));
+        }
+
+        function updateStats() {
+            document.getElementById('total-count').textContent = prints.length;
+            document.getElementById('not-listed-count').textContent = prints.filter(p => p.status === 'Not Listed').length;
+            document.getElementById('listed-count').textContent = prints.filter(p => p.status === 'Listed').length;
+            document.getElementById('sold-out-count').textContent = prints.filter(p => p.status === 'Sold Out').length;
+        }
+
+        function showImage(path, title) {
+            const modal = document.getElementById('image-modal');
+            const modalImage = document.getElementById('modal-image');
+            modalImage.src = path;
+            modalImage.alt = title;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('image-modal').classList.remove('active');
+        }
+
+        function exportCSV() {
+            const headers = ['filename', 'title', 'artist', 'status', 'price', 'web_image', 'thumbnail', 'etsy_url', 'notes', 'description'];
+            const csvContent = [
+                headers.join(','),
+                ...prints.map(print =>
+                    headers.map(header => {
+                        const value = print[header] || '';
+                        // Escape quotes and wrap in quotes if contains comma or quote
+                        const escaped = value.toString().replace(/"/g, '""');
+                        return /[,"]/.test(value) ? `"${escaped}"` : escaped;
+                    }).join(',')
+                )
+            ].join('\n');
+
+            downloadFile(csvContent, 'fairweather-catalog.csv', 'text/csv');
+        }
+
+        function exportJSON() {
+            const jsonContent = JSON.stringify(prints, null, 2);
+            downloadFile(jsonContent, 'fairweather-catalog-backup.json', 'application/json');
+        }
+
+        function importJSON() {
+            const fileInput = document.getElementById('json-file-input');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (!Array.isArray(imported)) {
+                        alert('Invalid JSON format. Expected an array of prints.');
+                        return;
+                    }
+
+                    if (confirm(`Import ${imported.length} prints? This will replace your current data.`)) {
+                        prints = imported;
+                        filteredPrints = [...prints];
+                        saveToCatalog();
+                        renderCatalog();
+                        updateStats();
+                        alert('Data imported successfully!');
+                    }
+                } catch (err) {
+                    alert('Failed to parse JSON file: ' + err.message);
+                }
+                fileInput.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function printCatalog() {
+            const includeDetails = confirm('Include Notes and Descriptions in print view?\n\nOK = Include\nCancel = Compact view only');
+
+            if (includeDetails) {
+                // Expand all rows
+                document.querySelectorAll('.catalog-row').forEach(row => {
+                    row.classList.add('expanded');
+                });
+            }
+
+            window.print();
+
+            if (includeDetails) {
+                // Collapse all rows after printing
+                setTimeout(() => {
+                    document.querySelectorAll('.catalog-row').forEach(row => {
+                        row.classList.remove('expanded');
+                    });
+                }, 100);
+            }
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
